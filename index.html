@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Classified Archive</title>
+
+	<style>
+		html, body {
+			margin: 0;
+			padding: 0;
+			background: #050505;
+			color: #d8d3c9;
+			font-family: "Courier New", monospace;
+		}
+
+		section {
+			width: 100%;
+			height: 100vh;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.intro {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		text-align: center;
+		background: #050505;
+		}
+
+		.intro-video {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: 0;
+		}
+
+		.intro-overlay {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.65);
+		z-index: 1;
+		}
+
+		.title {
+		position: relative;
+		z-index: 2;
+		}	
+
+		.title h1 {
+		font-family: Georgia, serif;
+		font-size: 58px;
+		letter-spacing: 4px;
+		line-height: 1.05;
+		margin: 0 0 28px;
+		color: #e8e1d4;
+		text-shadow:
+			0 0 12px rgba(122, 32, 32, 0.55),
+			0 0 35px rgba(122, 32, 32, 0.35);
+		}
+
+		.title button {
+		background: rgba(5,5,5,0.35);
+		color: #d8d3c9;
+		border: 1px solid rgba(216,211,201,0.65);
+		padding: 16px 42px;
+		letter-spacing: 3px;
+		cursor: pointer;
+		transition: 0.3s ease;
+		font-size: 14px;
+		}
+
+		.title button:hover {
+		color: #7a2020;
+		border-color: #7a2020;
+		box-shadow: 0 0 22px rgba(122, 32, 32, 0.6);
+		background: rgba(122, 32, 32, 0.12);
+		}
+
+		.terminal {
+			display: none;
+			justify-content: center;
+			align-items: center;
+			background: #050505;
+		}
+
+		.terminal-text {
+			color: #7a2020;
+			letter-spacing: 5px;
+			font-size: 22px;
+			line-height: 3;
+		}
+
+		.map-screen {
+			display: none;
+			background: #050505;
+			color: #d8d3c9;
+		}
+
+		.map-title {
+			position: absolute;
+			left: 80px;
+			top: 90px;
+		}
+
+		.map-title h1 {
+			font-size: 28px;
+			letter-spacing: 4px;
+			margin: 0 0 15px;
+		}
+
+		.map-title p {
+			color: #888;
+			font-size: 14px;
+		}
+
+		.map-box {
+			position: absolute;
+			left: 50%;
+			top: 52%;
+			transform: translate(-50%, -50%);
+			width: 1000px;
+			height: 600px;
+			border: 1px solid rgba(216,211,201,0.25);
+		}
+
+		.sea-map {
+		width: 100%;
+		height: 100%;
+		}
+
+		.map-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+		.map-hit {
+			position: absolute;
+			width: 55px;
+			height: 55px;
+			border-radius: 50%;
+			background: transparent;
+			border: none;
+			cursor: pointer;
+		}
+
+		.map-hit:hover {
+			background: rgba(0, 255, 160, 0.18);
+			box-shadow: 0 0 30px rgba(0, 255, 160, 0.9);
+		}
+
+		/* adjust these until they sit on the glowing dots */
+		.thailand { left: 192px; top: 133px; }
+		.vietnam { left: 283px; top: 24px; }
+		.philippines { left: 539px; top: 121px; }
+		.malaysia { left: 214px; top: 315px; }
+		.brunei { left: 433px; top: 287px; }
+		.indonesia { left: 301px; top: 467px; }
+
+		.country-shape {
+			fill: rgba(216,211,201,0.12);
+			stroke: rgba(216,211,201,0.45);
+			stroke-width: 2;
+			cursor: pointer;
+			transition: 0.3s;
+		}
+
+		.country-shape:hover {
+			fill: rgba(122,32,32,0.55);
+			stroke: #7a2020;
+			filter: drop-shadow(0 0 12px rgba(122,32,32,0.8));
+		}
+
+		.sea-map text {
+			fill: rgba(216,211,201,0.75);
+			font-size: 16px;
+			letter-spacing: 3px;
+			font-family: "Courier New", monospace;
+			pointer-events: none;
+		}
+
+		.entity {
+			display: none;
+			background-image: url("bgstatic.jpeg");
+			background-size: cover;
+			background-position: center;
+		}
+
+		.entity::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			background: rgba(0,0,0,0.25);
+		}
+
+		.back-btn {
+		position: absolute;
+		top: 40px;
+		left: 40px;
+		z-index: 10;
+
+		background: rgba(5,5,5,0.6);
+		backdrop-filter: blur(10px);
+
+		border: 1px solid rgba(216,211,201,0.35);
+
+		color: #d8d3c9;
+
+		padding: 12px 18px;
+
+		font-family: "Courier New", monospace;
+		letter-spacing: 2px;
+
+		cursor: pointer;
+
+		transition: 0.3s;
+	}
+
+		.back-btn:hover {
+		border-color: #7a2020;
+		color: #7a2020;
+	}
+
+		.marker {
+			position: absolute;
+			left: 38%;
+			top: 55%;
+			z-index: 3;
+			color: #d8d3c9;
+			background: rgba(0,0,0,0.35);
+			border: 1px solid rgba(216,211,201,0.5);
+			padding: 10px 18px;
+			letter-spacing: 3px;
+			cursor: pointer;
+			animation: blink 1.4s infinite;
+		}
+
+		@keyframes blink {
+			0%, 100% { opacity: 1; }
+			50% { opacity: 0.3; }
+		}
+
+		.entity {
+		background-image:
+			url("kra.jpeg");
+
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		}
+
+		.entity-figure {
+		position: absolute;
+		left: 30%;
+		bottom: -40px;
+		height: 110vh;
+		opacity: 0;
+		z-index: 2;
+		transform: translateX(-50%) scale(0.8);
+		transition: opacity 2s ease, transform 2s ease;
+		}
+
+		.entity-figure.show {
+		opacity: 1;
+		transform: translateX(-50%) scale(1);
+		animation: floatEntity 4s ease-in-out infinite;
+		}
+
+		@keyframes floatEntity {
+		0% {
+			transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
+		}
+
+		25% {
+			transform: translateX(-52%) translateY(-12px) rotate(-1deg) scale(1.01);
+		}
+
+		50% {
+			transform: translateX(-49%) translateY(-22px) rotate(1deg) scale(1.02);
+		}
+
+		75% {
+			transform: translateX(-51%) translateY(-10px) rotate(-0.5deg) scale(1.01);
+		}
+
+		100% {
+			transform: translateX(-50%) translateY(0) rotate(0deg) scale(1);
+		}
+		}
+
+		.info-panel {
+			position: absolute;
+			right: 80px;
+			bottom: 80px;
+			width: 420px;
+			z-index: 4;
+			opacity: 0;
+			transform: translateY(30px);
+			transition: all 0.8s ease;
+		}
+
+		.info-panel.show {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		.info-box, .tab-button, .tab-content {
+			background: rgba(5,5,5,0.35);
+			backdrop-filter: blur(12px);
+			border: 1px solid rgba(255,255,255,0.15);
+			padding: 22px;
+			margin-bottom: 12px;
+		}
+
+		.info-box h2 {
+			margin: 0 0 15px;
+			font-size: 18px;
+			color: #d8d3c9;
+			border-bottom: 1px solid #7a2020;
+		}
+
+		.info-box p {
+			margin: 6px 0;
+			font-size: 13px;
+			color: #b9b2a8;
+		}
+
+		.tab-button {
+			width: 100%;
+			color: #d8d3c9;
+			font-family: "Courier New", monospace;
+			text-align: left;
+			cursor: pointer;
+			letter-spacing: 2px;
+		}
+
+		.tab-button:hover {
+		color: #7a2020;
+		border-color: #7a2020;
+		}
+
+		.tab-content {
+			display: none;
+			color: #b9b2a8;
+			font-size: 14px;
+			line-height: 1.7;
+		}
+
+		.footage-status {
+		color: white;
+		font-size: 13px;
+		letter-spacing: 2px;
+		line-height: 1.8;
+		animation: pulse 1.2s infinite;
+		}
+
+		.audio-btn {
+			position: absolute;
+			left: 70px;
+			bottom: 70px;
+			z-index: 4;
+			width: 90px;
+			height: 90px;
+			border-radius: 50%;
+			background: rgba(5,5,5,0.6);
+			border: 1px solid rgba(216,211,201,0.4);
+			color: #d8d3c9;
+			cursor: pointer;
+			font-size: 11px;
+			letter-spacing: 1px;
+		}
+
+		.audio-status {
+		position: absolute;
+		left: 180px;
+		bottom: 92px;
+		z-index: 4;
+
+		background: rgba(5,5,5,0.6);
+		backdrop-filter: blur(10px);
+
+		border: 1px solid rgba(216,211,201,0.35);
+
+		color: white;
+
+		padding: 12px 18px;
+
+		font-size: 12px;
+		letter-spacing: 2px;
+		line-height: 1.6;
+
+		opacity: 0;
+		pointer-events: none;
+
+		transition: opacity 0.3s ease;	
+		}
+
+		.audio-status.show {
+			opacity: 1;
+		}
+
+		.reveal-prompt{
+	    position:absolute;
+
+	    top:50%;
+	    left:50%;
+
+	    transform:translate(-50%,-50%);
+
+	    font-family:"Courier New", monospace;
+	    text-align:center;
+	    font-size: 2rem;
+
+	    color:#d8d3c9;
+
+	    letter-spacing:3px;
+
+	    cursor:pointer;
+
+	    animation:pulse 2s infinite;
+		}
+
+		@keyframes pulse{
+	    0%{opacity:.3;}
+	    50%{opacity:1;}
+	    100%{opacity:.3;}
+		}
+
+		.screen-flicker {
+		position: absolute;
+		inset: 0;
+		z-index: 20;
+		background: rgba(255, 255, 255, 0.12);
+		pointer-events: none;
+		opacity: 0;
+		}
+
+		.screen-flicker.active {
+		animation: flickerScreen 1s steps(2) forwards;
+		}
+
+		@keyframes flickerScreen {
+		0% { opacity: 0; background: rgba(255,255,255,0.15); }
+		10% { opacity: 0.75; background: rgba(255,255,255,0.22); }
+		18% { opacity: 0; }
+		28% { opacity: 0.55; background: rgba(122,32,32,0.25); }
+		38% { opacity: 0; }
+		52% { opacity: 0.65; background: rgba(255,255,255,0.18); }
+		64% { opacity: 0; }
+		78% { opacity: 0.4; background: rgba(122,32,32,0.22); }
+		100% { opacity: 0; }
+		}
+	</style>
+</head>
+
+<body>
+
+	<section class="intro" id="intro">
+
+	<video class="intro-video" autoplay muted loop playsinline>
+		<source src="front.mp4" type="video/mp4">
+	</video>
+
+	<div class="intro-overlay"></div>
+
+	<div class="title">
+		<h1>CLASSIFIED<br>SOUTHEAST ASIA</h1>
+		<button onclick="startArchive()">[ ENTER ARCHIVE ]</button>
+	</div>
+
+	</section>
+
+	<section class="terminal" id="terminal">
+		<div class="terminal-text" id="terminalText"></div>
+	</section>
+
+	<section class="map-screen" id="mapScreen">
+	<div class="map-title">
+		<h1>ARCHIVE MAP_</h1>
+		<p>Select a region to access entity files.</p>
+	</div>
+
+	<div class="map-box">
+	<img src="mappy.jpg" class="map-img">
+
+	<button class="map-hit thailand" onclick="openEntity('thailand')"></button>
+	<button class="map-hit vietnam" onclick="openEntity('vietnam')"></button>
+	<button class="map-hit philippines" onclick="openEntity('philippines')"></button>
+	<button class="map-hit malaysia" onclick="openEntity('malaysia')"></button>
+	<button class="map-hit brunei" onclick="openEntity('brunei')"></button>
+	<button class="map-hit indonesia" onclick="openEntity('indonesia')"></button>
+	</div>
+	</section>
+
+	<section class="entity" id="entity" onclick="revealEntity()">
+
+		<div id="screenFlicker" class="screen-flicker"></div>
+
+		<button class="back-btn" onclick="event.stopPropagation(); backToMap();">
+		← RETURN TO ARCHIVE
+		</button>
+
+		<div id="revealPrompt" class="reveal-prompt">
+		ENTITY DETECTED_
+		<br>
+		CLICK ANYWHERE TO REVEAL_
+		</div>
+
+		<img src="kra.png" class="entity-figure" id="entityFigure">
+
+		<button class="audio-btn" onclick="event.stopPropagation(); playEntityAudio()">RECOVERED<br>AUDIO</button>
+
+		<div id="audioStatus" class="audio-status">
+			LOADING RECORDING...
+			<br>
+			SIGNAL UNSTABLE...
+		</div>
+
+		<div class="info-panel" id="infoPanel">
+		
+		<div class="info-box">
+		<h2 id="entityTitle">ENTITY FILE #001_</h2>
+		<p id="entityDesignation">DESIGNATION: KRASUE</p>
+		<p id="entityRegion">REGION: THAILAND</p>
+		<p id="entityClass">CLASSIFICATION: NOCTURNAL SPIRIT</p>
+		<p id="entityStatus">STATUS: ACTIVE IN FOLKLORE</p>
+		</div>
+
+		<button class="tab-button" onclick="openTab('story')">+ FOLKLORE STORY</button>
+		
+		<div class="tab-content" id="story">
+		</div>
+
+		<button class="tab-button" onclick="openTab('footage')">+ REAL FOOTAGE</button>
+		
+		<div class="tab-content" id="footage">
+
+		<div id="footageStatus" class="footage-status">
+			RETRIEVING FOOTAGE...
+			<br>
+			SOURCE: UNVERIFIED
+		</div>
+
+		<video id="footageVideo" width="100%" controls style="display:none;">
+			<source id="footageSource" src="video/footage.mp4" type="video/mp4">
+		</video>
+
+		</div>
+		</div>
+
+		<audio id="entityAudio">
+			<source id="audioSource" src="audio/entity-audio.mp3" type="audio/mpeg">
+		</audio>
+
+<!-- heres for the audio when u click to reveal entity -->
+
+		<audio id="entityAudio">
+		<source id="audioSource" src="static.mp3" type="audio/mpeg">
+		</audio>
+
+		<audio id="staticSound">
+		<source src="static.mp3" type="audio/mpeg">
+		</audio>
+	</section>
+
+	<script>
+		function startArchive() {
+			document.getElementById("intro").style.display = "none";
+			document.getElementById("terminal").style.display = "flex";
+
+			const terminal = document.getElementById("terminalText");
+			const lines = [
+				"USER AUTHORIZATION REQUIRED_",
+				"INITIALIZING ARCHIVE...",
+				"LOADING ENTITY FILES...",
+				"VERIFYING ACCESS...",
+				"ACCESS GRANTED_"
+			];
+
+			let index = 0;
+			terminal.innerHTML = "";
+
+			const interval = setInterval(function () {
+				terminal.innerHTML += lines[index] + "<br><br>";
+				index++;
+
+				if (index === lines.length) {
+					clearInterval(interval);
+
+					setTimeout(function () {
+						document.getElementById("terminal").style.display = "none";
+						document.getElementById("mapScreen").style.display = "block";
+					}, 1200);
+				}
+			}, 900);
+		}
+
+		function revealEntity() {
+		const staticSound = document.getElementById("staticSound");
+		const flicker = document.getElementById("screenFlicker");
+
+		staticSound.currentTime = 0;
+		staticSound.volume = 0.5;
+		staticSound.play();
+
+		flicker.classList.remove("active");
+		void flicker.offsetWidth;
+		flicker.classList.add("active");
+
+		document.getElementById("revealPrompt").style.display = "none";
+
+		setTimeout(function () {
+			document.getElementById("entityFigure").classList.add("show");
+			document.getElementById("infoPanel").classList.add("show");
+		}, 900);
+		}
+
+		function openTab(tabName) {
+		const tabs = document.querySelectorAll(".tab-content");
+		tabs.forEach(tab => tab.style.display = "none");
+
+		document.getElementById(tabName).style.display = "block";
+
+		if (tabName === "footage") {
+			const footageStatus = document.getElementById("footageStatus");
+			const footageVideo = document.getElementById("footageVideo");
+
+			footageStatus.style.display = "block";
+			footageVideo.style.display = "none";
+
+			setTimeout(function () {
+				footageStatus.style.display = "none";
+				footageVideo.style.display = "block";
+			}, 2000);
+		}
+		}
+
+		function playEntityAudio() {
+		const audio = document.getElementById("entityAudio");
+		const audioStatus = document.getElementById("audioStatus");
+
+		audioStatus.classList.add("show");
+
+		setTimeout(function () {
+			audioStatus.classList.remove("show");
+
+			audio.currentTime = 0;
+			audio.volume = 0.8;
+			audio.play();
+		}, 3000);
+		}
+
+		const entityData = {
+		thailand: {
+			bg: "kra.jpeg",
+			figure: "kra.png",
+			video: "thaikra.mp4",
+			audio: "error.mp3",
+			title: "ENTITY FILE #001_",
+			designation: "DESIGNATION: KRASUE",
+			region: "REGION: THAILAND",
+			classification: "CLASSIFICATION: NOCTURNAL SPIRIT",
+			status: "STATUS: ACTIVE IN FOLKLORE",
+			story: "The Krasue is a nocturnal spirit known in Southeast Asian folklore. It is often described as a floating female apparition seen in isolated rural areas at night."
+		},
+
+		malaysia: {
+			bg: "pon.jpeg",
+			figure: "pon.png",
+			video: "maponti.mp4",
+			audio: "ponti.mp3",
+			title: "ENTITY FILE #002_",
+			designation: "DESIGNATION: PONTIANAK",
+			region: "REGION: MALAYSIA",
+			classification: "CLASSIFICATION: FEMALE APPARITION",
+			status: "STATUS: ACTIVE IN ORAL TRADITION",
+			story: "The Pontianak is a spirit often connected to Malay folklore. It is commonly described as appearing near quiet roads, trees, or abandoned places at night."
+		},
+
+		indonesia: {
+			bg: "gende.jpeg",
+			figure: "gende.png",
+			video: "indogende.mp4",
+			audio: "error.mp3",
+			title: "ENTITY FILE #003_",
+			designation: "DESIGNATION: GENDERUWO",
+			region: "REGION: INDONESIA",
+			classification: "CLASSIFICATION: FOREST ENTITY",
+			status: "STATUS: FREQUENTLY REPORTED",
+			story: "Genderuwo is a large, shadowy spirit from Indonesian folklore, often described as living near forests, ruins, or quiet abandoned places. Stories portray it as a powerful entity that appears at night and is feared for its disturbing presence and ability to imitate or disturb humans."
+		},
+
+		philippines: {
+			bg: "mana.jpeg",
+			figure: "mana.png",
+			video: "error.mp4",
+			audio: "error.mp3",
+			title: "ENTITY FILE #004_",
+			designation: "DESIGNATION: MANANANGGAL",
+			region: "REGION: PHILIPPINES",
+			classification: "CLASSIFICATION: FLYING PREDATOR",
+			status: "STATUS: WIDELY REPORTED IN FOLKLORE",
+			story: "The Aswang is a shapeshifting creature from Philippine folklore. Stories describe it as blending into human communities during the day and transforming at night."
+		},
+
+		vietnam: {
+			bg: "mada.jpeg",
+			figure: "mada.png",
+			video: "vietmada.mp4",
+			audio: "error.mp3",
+			title: "ENTITY FILE #005_",
+			designation: "DESIGNATION: MA DA",
+			region: "REGION: VIETNAM",
+			classification: "CLASSIFICATION: WATER SPIRIT",
+			status: "STATUS: ACTIVE IN FOLKLORE",
+			story: "Ma Da is a water ghost found in Vietnamese folklore, often believed to be the restless spirit of someone who drowned. It is said to linger near rivers, lakes, or deep water, waiting silently beneath the surface. Stories describe Ma Da as pulling the living into the water, repeating the cycle of death and replacing its own trapped spirit."
+		},
+
+		brunei: {
+			bg: "poch.jpeg",
+			figure: "poc.png",
+			video: "brupoci.mp4",
+			audio: "poci.mp3",
+			title: "ENTITY FILE #006_",
+			designation: "DESIGNATION: POCONG",
+			region: "REGION: BRUNEI",
+			classification: "CLASSIFICATION: RESTLESS SPIRIT",
+			status: "STATUS: ACTIVE IN FOLKLORE",
+			story: "Pocong is a spirit from Malay folklore, believed to be the soul of a deceased person trapped within its burial shroud. According to traditional beliefs, the spirit may return if certain funeral rituals are left incomplete. Witness accounts often describe a white, wrapped figure appearing silently at night, moving through graveyards, forests, and isolated roads."
+		}
+	};
+
+	function openEntity(country) {
+		const data = entityData[country];
+
+		document.getElementById("mapScreen").style.display = "none";
+		document.getElementById("entity").style.display = "block";
+
+		document.getElementById("entity").style.backgroundImage = `url("${data.bg}")`;
+		document.getElementById("entityFigure").src = data.figure;
+
+		document.getElementById("entityTitle").innerText = data.title;
+		document.getElementById("entityDesignation").innerText = data.designation;
+		document.getElementById("entityRegion").innerText = data.region;
+		document.getElementById("entityClass").innerText = data.classification;
+		document.getElementById("entityStatus").innerText = data.status;
+		document.getElementById("story").innerText = data.story;
+		document.getElementById("footageSource").src = data.video;
+		document.querySelector("#footage video").load();
+
+		document.getElementById("audioSource").src = data.audio;
+		document.getElementById("entityAudio").load();
+			}
+
+		function backToMap() {
+		document.getElementById("entity").style.display = "none";
+		document.getElementById("mapScreen").style.display = "block";
+		document.getElementById("entityFigure").classList.remove("show");
+		document.getElementById("infoPanel").classList.remove("show");
+		document.getElementById("revealPrompt").style.display = "block";
+
+		const tabs = document.querySelectorAll(".tab-content");
+		tabs.forEach(tab => tab.style.display = "none");
+
+		const footageVideo = document.getElementById("footageVideo");
+		const entityAudio = document.getElementById("entityAudio");
+		const staticSound = document.getElementById("staticSound");
+
+		if (footageVideo) {
+			footageVideo.pause();
+			footageVideo.currentTime = 0;
+		}
+
+		if (entityAudio) {
+			entityAudio.pause();
+			entityAudio.currentTime = 0;
+		}
+
+		if (staticSound) {
+			staticSound.pause();
+			staticSound.currentTime = 0;
+		}
+		}
+
+	</script>
+
+</body>
+</html>
